@@ -1,11 +1,11 @@
 import javax.swing.*;
 
-class Kjoer implements Runnable {
+class Run implements Runnable {
     private boolean continueGame = true;
     private Snake snake;
     private long interval = 500;
 
-    public Kjoer(Snake snake) {
+    public Run(Snake snake) {
         this.snake = snake;
     }
 
