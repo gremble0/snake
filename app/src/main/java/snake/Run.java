@@ -1,3 +1,5 @@
+package snake;
+
 import javax.swing.*;
 
 class Run implements Runnable {
@@ -14,8 +16,8 @@ class Run implements Runnable {
         try {
             while (continueGame) {
                 Thread.sleep(interval);
-                JLabel headRef = snake.hentHodeRef();
-                snake.flytt(headRef);
+                JLabel headRef = snake.getHeadRef();
+                snake.move(headRef);
                 if (interval > 100) {
                     interval -= 50;
                 }
