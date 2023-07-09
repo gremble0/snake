@@ -27,7 +27,7 @@ public class Head {
             }
             headY += 1;
         } else {
-            if (headX <= boardCols) {
+            if (headX <= 0) {
                 return null;
             }
             headX -= 1;

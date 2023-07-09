@@ -11,15 +11,11 @@ class Run implements Runnable {
     @Override
     public void run() {
         try {
-            while (snake.updateGame()) {
+            while (snake.continueGame()) {
                 Thread.sleep(interval);
             }
         } catch (InterruptedException e) {
             System.exit(1);
-        } catch (IndexOutOfBoundsException e) {
-            // continueGame = false;
-        } catch (NullPointerException e) {
-            // continueGame = false;
-        }
+        } 
     }
 }

@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 import javax.swing.*;
@@ -13,13 +12,14 @@ public class Snake {
     public final int BOARD_COLS = 12;
     public final int BOARD_ROWS = 12;
 
-    public Head head;
-    public Direction direction;
-
     public Queue<JLabel> snake;
+    private Head head;
+    private Direction direction;
+
     private JFrame gameWindow;
     private JPanel gameMain;
     private JPanel gamePanel;
+    private JLabel scoreLabel;
 
     public Snake() {
         head = new Head(6, 6);
@@ -28,6 +28,7 @@ public class Snake {
         gameWindow = new JFrame("Snake");
         gameMain = new JPanel(new GridBagLayout()); 
         gamePanel = new JPanel(new GridLayout(BOARD_COLS, BOARD_ROWS, -1, -1)); 
+        scoreLabel = new JLabel("0", SwingConstants.CENTER);
 
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -100,34 +101,35 @@ public class Snake {
         gbc.gridx = 1; gbc.gridy = 2;
         header.add(downButton, gbc);
         downButton.addActionListener(new ChangeDirection(Direction.DOWN));
-        
 
+        // Score label
+        gbc.gridy = 1;
+        header.add(scoreLabel, gbc);
+        
         /**
          * INITIALISING GRID
          */
-        ArrayList<ArrayList<Integer>> apples = new ArrayList<>();
-        for (int i = 0; i < BOARD_ROWS; i++) {
-            apples.add(new ArrayList<>());
-        }
+
+        int apples[][] = new int[BOARD_ROWS][BOARD_COLS];
 
         for (int i = 0; i < 10; i++) { // Make 10 apples
-            int appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
-            int appleY = (int)Math.floor(Math.random() * BOARD_COLS);
+            int appleX = (int) Math.floor(Math.random() * BOARD_ROWS);
+            int appleY = (int) Math.floor(Math.random() * BOARD_COLS);
 
             // If the indexes have already been generated, try again
-            if (apples.size() != 0 && apples.get(appleY).contains(appleX)) {
+            if (apples[appleX][appleY] == 1) {
                 i -= 1;
                 continue;
             }
 
-            apples.get(appleY).add(appleX);
+            apples[appleX][appleY] = 1;
         }
 
         for (int i = 0; i < BOARD_ROWS; i++) {
             for (int j = 0; j < BOARD_COLS; j++) {
                 JLabel box;
 
-                if (apples.get(i).contains(j)) {
+                if (apples[i][j] == 1) {
                     // If we're on a box with an apple
                     box = new JLabel("$");
                     box.setForeground(Color.red);
@@ -170,49 +172,51 @@ public class Snake {
         gameWindow.addKeyListener(new ChangeDirectionArrowkey());
     }
 
-    public void changeDirection(Direction newDirection) {
+    private void changeDirection(Direction newDirection) {
         direction = newDirection;
     }
 
-    public void drawInBox(JLabel box, String text, Color background, Color foreground) {
+    private void drawInBox(JLabel box, String text, Color background, Color foreground) {
         box.setText(text);
         box.setBackground(background);
         box.setForeground(foreground);
     }
 
-    public JLabel getBox(int[] cords) {
+    private JLabel getBox(int boxX, int boxY) {
         // To get list index required by getComponent we take the row headPos[0] 
         // and add it to the column headPos[1] multiplied by the amount of columns.
-        return (JLabel) gamePanel.getComponent(cords[0] + cords[1] * BOARD_COLS);
+        return (JLabel) gamePanel.getComponent(boxX + boxY * BOARD_COLS);
     }
 
-    public void spawnApple() {
+    private void spawnApple() {
         int appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
         int appleY = (int)Math.floor(Math.random() * BOARD_COLS);
-        int[] cords = { appleX, appleY };
 
-        JLabel box = getBox(cords);
+        JLabel box = getBox(appleX, appleY);
         String boxText = box.getText();
         while (boxText == "o" || boxText == "+" || boxText == "$") {
-            // Will go in an infinite loop if the snake gets very long
-             appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
-             appleY = (int)Math.floor(Math.random() * BOARD_COLS);
-             cords[0] = appleX;
-             cords[1] = appleY;
+            // Will go in an infinite loop if there are no more available boxes
+            appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
+            appleY = (int)Math.floor(Math.random() * BOARD_COLS);
 
-            box = getBox(cords);
+            box = getBox(appleX, appleY);
             boxText = box.getText();
         }
 
         drawInBox(box, "$", Color.white, Color.red);
     }
 
-    public boolean updateGame() {
+    public boolean continueGame() {
         int[] headPos = head.move(direction, BOARD_ROWS, BOARD_COLS);
-        JLabel nextBox = getBox(headPos);
 
-        if (nextBox.getText() == "+") {
+        if (headPos == null) {
             // We have eaten our tail
+            return false;
+        }
+
+        JLabel nextBox = getBox(headPos[0], headPos[1]);
+        if (nextBox.getText() == "+") {
+            // We have moved out of bounds
             return false;
         }
         
@@ -224,15 +228,19 @@ public class Snake {
             }
             drawInBox(nextBox, "o", Color.green, Color.black);
             spawnApple();
+            int newScore = Integer.parseInt(scoreLabel.getText()) + 1;
+            drawInBox(scoreLabel, Integer.toString(newScore), Color.green, Color.black);
 
             return true;
         } 
 
         snake.offer(nextBox);
-        for (JLabel slangeBoks : snake) {
-            drawInBox(slangeBoks, "+", Color.green, Color.black);
+        for (JLabel snakeBody : snake) {
+            drawInBox(snakeBody, "+", Color.green, Color.black);
         }
 
+        System.out.println(headPos[0]);
+        System.out.println(headPos[1]);
         drawInBox(nextBox, "o", Color.green, Color.black);
         drawInBox(snake.remove(), "", Color.white, Color.white);
 
