@@ -10,14 +10,25 @@ import java.util.Queue;
 import javax.swing.*;
 
 public class Snake {
-    private String direction = "right";
-    private int headPos = 76;
-    private Queue<JLabel> snake = new LinkedList<>();
-    private JFrame gameWindow = new JFrame("Snake");
-    private JPanel gameMain = new JPanel(new GridBagLayout());
-    private JPanel gamePanel = new JPanel(new GridLayout(12, 12, -1, -1)); 
+    public final int BOARD_COLS = 12;
+    public final int BOARD_ROWS = 12;
+
+    public Head head;
+    public Direction direction;
+
+    public Queue<JLabel> snake;
+    private JFrame gameWindow;
+    private JPanel gameMain;
+    private JPanel gamePanel;
 
     public Snake() {
+        head = new Head(6, 6);
+        direction = Direction.RIGHT;
+        snake = new LinkedList<>();
+        gameWindow = new JFrame("Snake");
+        gameMain = new JPanel(new GridBagLayout()); 
+        gamePanel = new JPanel(new GridLayout(BOARD_COLS, BOARD_ROWS, -1, -1)); 
+
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
         } catch (Exception e) {
@@ -38,8 +49,8 @@ public class Snake {
          * BUTTONS TO CHANGE DIRECTION
          */
         class ChangeDirection implements ActionListener {
-            String direction;
-            public ChangeDirection(String direction) {
+            Direction direction;
+            public ChangeDirection(Direction direction) {
                 this.direction = direction;
             }
 
@@ -53,13 +64,13 @@ public class Snake {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_UP) {
-                    changeDirection("up");
+                    changeDirection(Direction.UP);
                 } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    changeDirection("right");
+                    changeDirection(Direction.RIGHT);
                 } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-                    changeDirection("down");
+                    changeDirection(Direction.DOWN);
                 } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    changeDirection("left");
+                    changeDirection(Direction.LEFT);
                 }
             }
 
@@ -73,60 +84,71 @@ public class Snake {
         JButton upButton = new JButton("Up");
         gbc.gridx = 1;
         header.add(upButton, gbc);
-        upButton.addActionListener(new ChangeDirection("up"));
+        upButton.addActionListener(new ChangeDirection(Direction.UP));
+
+        JButton rightButton = new JButton("Right");
+        gbc.gridy = 1; gbc.gridx = 2;
+        header.add(rightButton, gbc);
+        rightButton.addActionListener(new ChangeDirection(Direction.RIGHT));
 
         JButton leftButton = new JButton("Left");
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
         header.add(leftButton, gbc);
-        leftButton.addActionListener(new ChangeDirection("left"));
-
-        JButton rightButton = new JButton("Left");
-        gbc.gridx = 2;
-        header.add(rightButton, gbc);
-        rightButton.addActionListener(new ChangeDirection("right"));
+        leftButton.addActionListener(new ChangeDirection(Direction.LEFT));
 
         JButton downButton = new JButton("Down");
         gbc.gridx = 1; gbc.gridy = 2;
         header.add(downButton, gbc);
-        downButton.addActionListener(new ChangeDirection("down"));
+        downButton.addActionListener(new ChangeDirection(Direction.DOWN));
         
 
         /**
          * INITIALISING GRID
          */
-        ArrayList<Integer> apples = new ArrayList<>(); // liste av indekser der det skal vaere apples
-
-        for (int i = 0; i < 10; i++) { // i < 10 for aa starte med 10 apples
-            int applePos = (int)Math.floor(Math.random()*(143-0+1)+0); // 144 ruter aa velge mellom siden 12*12
-
-            if (apples.contains(applePos) || applePos == 76) {
-                i -= 1;
-                continue; // hvis det tilfeldige tallet allerede har blitt generert, eller tallet er der hvor snaken skal starte (boks 6,6), lag et nytt tall
-            }
-            apples.add(applePos);
+        ArrayList<ArrayList<Integer>> apples = new ArrayList<>();
+        for (int i = 0; i < BOARD_ROWS; i++) {
+            apples.add(new ArrayList<>());
         }
 
-        for (int i = 0; i < 144; i++) {
-            JLabel boks;
+        for (int i = 0; i < 10; i++) { // Make 10 apples
+            int appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
+            int appleY = (int)Math.floor(Math.random() * BOARD_COLS);
 
-            if (apples.contains(i)) { // hvis vi er paa en boks der det er generert en skatt...
-                boks = new JLabel("$");
-                boks.setForeground(Color.red);
-                boks.setBackground(Color.white);
-            } else if (i == 76) { // der snaken skal starte
-                boks = new JLabel("o");
-                boks.setBackground(Color.green);
-                snake.add(boks);
-            } else {
-                boks = new JLabel(" ");
-                boks.setBackground(Color.white);
+            // If the indexes have already been generated, try again
+            if (apples.size() != 0 && apples.get(appleY).contains(appleX)) {
+                i -= 1;
+                continue;
             }
 
-            boks.setOpaque(true);
-            boks.setFont(new Font("Arial", Font.BOLD, 20));
-            boks.setHorizontalAlignment(SwingConstants.CENTER);
-            boks.setBorder(BorderFactory.createLineBorder(Color.black)); // lager en svart ramme rundt hver boks i griden
-            gamePanel.add(boks);
+            apples.get(appleY).add(appleX);
+        }
+
+        for (int i = 0; i < BOARD_ROWS; i++) {
+            for (int j = 0; j < BOARD_COLS; j++) {
+                JLabel box;
+
+                if (apples.get(i).contains(j)) {
+                    // If we're on a box with an apple
+                    box = new JLabel("$");
+                    box.setForeground(Color.red);
+                    box.setBackground(Color.white);
+                } else if (i == 6 && j == 6) {
+                    // Where the snake is starting
+                    box = new JLabel("o");
+                    box.setBackground(Color.green);
+                    // snake.add(box);
+                } else {
+                    // Empty boxes
+                    box = new JLabel(" ");
+                    box.setBackground(Color.white);
+                }
+
+                box.setOpaque(true);
+                box.setFont(new Font("Arial", Font.BOLD, 20));
+                box.setHorizontalAlignment(SwingConstants.CENTER);
+                box.setBorder(BorderFactory.createLineBorder(Color.black));
+                gamePanel.add(box);
+            }
         }
 
         /**
@@ -148,83 +170,72 @@ public class Snake {
         gameWindow.addKeyListener(new ChangeDirectionArrowkey());
     }
 
-    public void changeDirection(String newDirection) {
+    public void changeDirection(Direction newDirection) {
         direction = newDirection;
     }
 
-    public void move(JLabel head) {
-        JLabel nextBox;
+    public void drawInBox(JLabel box, String text, Color background, Color foreground) {
+        box.setText(text);
+        box.setBackground(background);
+        box.setForeground(foreground);
+    }
 
-        if (direction == "up") {
-            if (headPos <= 11) { 
-                gamePanel = null; // fant ingen bedre maate aa stoppe programmet uten System.exit(), hvilket umiddelbart lukker guien
-                return;
-            }
-            headPos -= 12;
-            nextBox = (JLabel) gamePanel.getComponent(headPos);
-        } else if (direction == "right") {
-            if ((headPos + 1) % 12 == 0) {
-                gamePanel = null;
-                return;
-            }
-            headPos += 1;
-            nextBox = (JLabel) gamePanel.getComponent(headPos);
-        } else if (direction == "down") {
-            if (headPos >= 132) { // hvis headPos er stoerre enn eller lik foerste rute paa nederste rad...
-                gamePanel = null;
-                return;
-            }
-            headPos += 12;
-            nextBox = (JLabel) gamePanel.getComponent(headPos);
-        } else {
-            if (headPos % 12 == 0) {
-                gamePanel = null;
-                return;
-            }
-            headPos -= 1;
-            nextBox = (JLabel) gamePanel.getComponent(headPos);
+    public JLabel getBox(int[] cords) {
+        // To get list index required by getComponent we take the row headPos[0] 
+        // and add it to the column headPos[1] multiplied by the amount of columns.
+        return (JLabel) gamePanel.getComponent(cords[0] + cords[1] * BOARD_COLS);
+    }
+
+    public void spawnApple() {
+        int appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
+        int appleY = (int)Math.floor(Math.random() * BOARD_COLS);
+        int[] cords = { appleX, appleY };
+
+        JLabel box = getBox(cords);
+        String boxText = box.getText();
+        while (boxText == "o" || boxText == "+" || boxText == "$") {
+            // Will go in an infinite loop if the snake gets very long
+             appleX = (int)Math.floor(Math.random() * BOARD_ROWS);
+             appleY = (int)Math.floor(Math.random() * BOARD_COLS);
+             cords[0] = appleX;
+             cords[1] = appleY;
+
+            box = getBox(cords);
+            boxText = box.getText();
         }
+
+        drawInBox(box, "$", Color.white, Color.red);
+    }
+
+    public boolean updateGame() {
+        int[] headPos = head.move(direction, BOARD_ROWS, BOARD_COLS);
+        JLabel nextBox = getBox(headPos);
 
         if (nextBox.getText() == "+") {
-            gamePanel = null;
-            return;
+            // We have eaten our tail
+            return false;
         }
-
-        if (nextBox.getText().equals("$")) { // hvis neste boks har en skatt...
+        
+        if (nextBox.getText().equals("$")) {
+            // We have eaten an apple
             snake.offer(nextBox);
-            for (JLabel snakeBoks : snake) {
-                drawInBox(snakeBoks, "+", Color.green, Color.black);
+            for (JLabel snakeBody : snake) {
+                drawInBox(snakeBody, "+", Color.green, Color.black);
             }
             drawInBox(nextBox, "o", Color.green, Color.black);
+            spawnApple();
 
-            int tilfeldigInt = (int)Math.floor(Math.random()*(143-0+1)+0);
-            JLabel boks = (JLabel)gamePanel.getComponent(tilfeldigInt);
-            while (boks.getText() == "o" || boks.getText() == "+" || boks.getText() == "$") { // repeter til generert boks ikke er en del av snaken eller allerede en skatt
-                // vil gaa i uendelig loekke hvis snaken blir veldig lang, men ikke et reelt problem
-                tilfeldigInt = (int)Math.floor(Math.random()*(143-0+1)+0);
-                boks = (JLabel)gamePanel.getComponent(tilfeldigInt);
-            }
-
-            drawInBox(boks, "$", Color.white, Color.red);
-            return;
+            return true;
         } 
 
         snake.offer(nextBox);
-        for (JLabel snakeBoks : snake) {
-            drawInBox(snakeBoks, "+", Color.green, Color.black);
+        for (JLabel slangeBoks : snake) {
+            drawInBox(slangeBoks, "+", Color.green, Color.black);
         }
 
         drawInBox(nextBox, "o", Color.green, Color.black);
         drawInBox(snake.remove(), "", Color.white, Color.white);
-    }
 
-    public void drawInBox(JLabel boks, String text, Color bakgrunn, Color forgrunn) {
-        boks.setText(text);
-        boks.setBackground(bakgrunn);
-        boks.setForeground(forgrunn);
-    }
-
-    public JLabel getHeadRef() {
-        return snake.peek();
+        return true;
     }
 }

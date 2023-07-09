@@ -1,11 +1,8 @@
 package snake;
 
-import javax.swing.*;
-
 class Run implements Runnable {
-    private boolean continueGame = true;
     private Snake snake;
-    private long interval = 500;
+    private int interval = 1000;
 
     public Run(Snake snake) {
         this.snake = snake;
@@ -14,20 +11,15 @@ class Run implements Runnable {
     @Override
     public void run() {
         try {
-            while (continueGame) {
+            while (snake.updateGame()) {
                 Thread.sleep(interval);
-                JLabel headRef = snake.getHeadRef();
-                snake.move(headRef);
-                if (interval > 100) {
-                    interval -= 50;
-                }
             }
         } catch (InterruptedException e) {
             System.exit(1);
-        } catch (IndexOutOfBoundsException e) { // hvis vi proever aa flytte oss mens vi er paa kanten av brettet
-            continueGame = false;
+        } catch (IndexOutOfBoundsException e) {
+            // continueGame = false;
         } catch (NullPointerException e) {
-            continueGame = false;
+            // continueGame = false;
         }
     }
 }
