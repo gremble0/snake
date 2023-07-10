@@ -2,7 +2,7 @@ package snake;
 
 class Run implements Runnable {
     private Snake snake;
-    private int interval = 1000;
+    private int interval = 750;
 
     public Run(Snake snake) {
         this.snake = snake;

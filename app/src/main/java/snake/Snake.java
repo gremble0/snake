@@ -9,26 +9,23 @@ import java.util.Queue;
 import javax.swing.*;
 
 public class Snake {
-    public final int BOARD_COLS = 12;
-    public final int BOARD_ROWS = 12;
+    private final int BOARD_COLS;
+    private final int BOARD_ROWS;
 
-    public Queue<JLabel> snake;
-    private Head head;
-    private Direction direction;
+    private Queue<JLabel> snake = new LinkedList<>();
+    private Head head = new Head(6, 6);
+    private Direction direction = Direction.RIGHT;
+    private int score = 0;
 
-    private JFrame gameWindow;
-    private JPanel gameMain;
+    private JFrame gameWindow = new JFrame("Snake");
+    private JPanel gameMain = new JPanel(new GridBagLayout()); 
+    private JLabel scoreLabel = new JLabel("Score: 0", SwingConstants.CENTER);;
     private JPanel gamePanel;
-    private JLabel scoreLabel;
 
-    public Snake() {
-        head = new Head(6, 6);
-        direction = Direction.RIGHT;
-        snake = new LinkedList<>();
-        gameWindow = new JFrame("Snake");
-        gameMain = new JPanel(new GridBagLayout()); 
-        gamePanel = new JPanel(new GridLayout(BOARD_COLS, BOARD_ROWS, -1, -1)); 
-        scoreLabel = new JLabel("0", SwingConstants.CENTER);
+    public Snake(int rows, int cols, int numApples) {
+        BOARD_ROWS = rows;
+        BOARD_COLS = cols;
+        gamePanel = new JPanel(new GridLayout(BOARD_COLS, BOARD_ROWS, -1, -1)); ;
 
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
@@ -38,10 +35,8 @@ public class Snake {
         gameWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.weightx = 1.0; gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
 
         JPanel header = new JPanel(new GridBagLayout());
@@ -112,7 +107,7 @@ public class Snake {
 
         int apples[][] = new int[BOARD_ROWS][BOARD_COLS];
 
-        for (int i = 0; i < 10; i++) { // Make 10 apples
+        for (int i = 0; i < numApples; i++) {
             int appleX = (int) Math.floor(Math.random() * BOARD_ROWS);
             int appleY = (int) Math.floor(Math.random() * BOARD_COLS);
 
@@ -138,7 +133,7 @@ public class Snake {
                     // Where the snake is starting
                     box = new JLabel("o");
                     box.setBackground(Color.green);
-                    // snake.add(box);
+                    snake.add(box);
                 } else {
                     // Empty boxes
                     box = new JLabel(" ");
@@ -228,8 +223,7 @@ public class Snake {
             }
             drawInBox(nextBox, "o", Color.green, Color.black);
             spawnApple();
-            int newScore = Integer.parseInt(scoreLabel.getText()) + 1;
-            drawInBox(scoreLabel, Integer.toString(newScore), Color.green, Color.black);
+            drawInBox(scoreLabel, String.format("Score: %s", ++score), Color.green, Color.black);
 
             return true;
         } 
@@ -239,8 +233,6 @@ public class Snake {
             drawInBox(snakeBody, "+", Color.green, Color.black);
         }
 
-        System.out.println(headPos[0]);
-        System.out.println(headPos[1]);
         drawInBox(nextBox, "o", Color.green, Color.black);
         drawInBox(snake.remove(), "", Color.white, Color.white);
 
