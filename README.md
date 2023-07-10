@@ -1,6 +1,12 @@
 # Snake 
-This is a simple implementation of the classic snake game in Java using a GUI.
+This is an implementation of the classic snake game in Java using a GUI.
 
-To run the program simply compile Main.java and run the outputted Main class file with java
+## Dependencies
+- gradle
+- java
 
-To increase the difficulty change the speed of the snake by lowering the `interval` variable in `Run.java`
+## Running
+To run the program install gradle and on linux run `./gradlew run`, on windows use the appropriate command with the `gradle.bat` file inside the root directory.
+
+## Architecture
+This version of the program is a heavily refactored version of its first implementation. It's now using a more ideomatic object oriented architecture where each class has more concentrated responsibilities
