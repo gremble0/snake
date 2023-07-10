@@ -1,17 +1,17 @@
 package snake;
 
 class Run implements Runnable {
-    private Snake snake;
+    private SnakeGame snakeGame;
     private int interval = 750;
 
-    public Run(Snake snake) {
-        this.snake = snake;
+    public Run(SnakeGame snakeGame) {
+        this.snakeGame = snakeGame;
     }
 
     @Override
     public void run() {
         try {
-            while (snake.continueGame()) {
+            while (snakeGame.continueGame()) {
                 Thread.sleep(interval);
             }
         } catch (InterruptedException e) {
